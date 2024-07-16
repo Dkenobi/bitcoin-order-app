@@ -42,9 +42,6 @@ jobs:
       - name: Lint
         run: |
           npm run lint
-      - name: custom lint
-        run: |
-          ng lint
       - name: Audit 
         run: |
           npm audit fix
