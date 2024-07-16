@@ -42,28 +42,57 @@ jobs:
       - name: Lint
         run: |
           npm run lint
+      - name: custom lint
+        run: |
+          ng lint
+      - name: Audit 
+        run: |
+          npm audit fix
       - name: Update types to latest
         run: |
           npm install --save-dev @types/node@latest --force
-      #- name: Test
-      #  run: |
-      #    npm run test --watch=false --browsers=ChromeHeadless
-      - name: Conventional Changelog Action
-        id: changelog
-        uses: TriPSs/conventional-changelog-action@v3
-        with:
-          github-token: ${{ secrets.DEVSECOPS_GITHUB }}
-          output-file: "false"
-
-      - name: Create Release
-        uses: actions/create-release@v1
-        if: ${{ steps.changelog.outputs.skipped == 'false' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.DEVSECOPS_GITHUB }}
-        with:
-          tag_name: ${{ steps.changelog.outputs.tag }}
-          release_name: ${{ steps.changelog.outputs.tag }}
-          body: ${{ steps.changelog.outputs.clean_changelog }}
-      - name: Deploy
+      - name: Test
         run: |
-          npm run deploy
+          npm run test --watch=false --browsers=ChromeHeadless
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: user/app:latest
+
+
+      # - name: Conventional Changelog Action
+      #   id: changelog
+      #   uses: TriPSs/conventional-changelog-action@v3
+      #   with:
+      #     github-token: ${{ secrets.DEVSECOPS_GITHUB }}
+      #     output-file: "false"
+
+      # - name: Create Release
+      #   uses: actions/create-release@v1
+      #   if: ${{ steps.changelog.outputs.skipped == 'false' }}
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.DEVSECOPS_GITHUB }}
+      #   with:
+      #     tag_name: ${{ steps.changelog.outputs.tag }}
+      #     release_name: ${{ steps.changelog.outputs.tag }}
+      #     body: ${{ steps.changelog.outputs.clean_changelog }}
+      # - name: Deploy
+      #   run: |
+      #     npm run deploy
