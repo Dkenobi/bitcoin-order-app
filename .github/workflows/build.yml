@@ -48,7 +48,28 @@ jobs:
       - name: Test
         run: |
           npm run test --watch=false --browsers=ChromeHeadless
+            # - name: Conventional Changelog Action
+      - name: Conventional Changelog Action
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@v3
+        with:
+          github-token: ${{ secrets.DEVSECOPS_GITHUB }}
+          output-file: "false"
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.DEVSECOPS_GITHUB }}
+        with:
+          tag_name: ${{ steps.changelog.outputs.tag }}
+          release_name: ${{ steps.changelog.outputs.tag }}
+          body: ${{ steps.changelog.outputs.clean_changelog }}
+      - name: Deploy
+        run: |
+          npm run deploy
   docker:
+    needs: ci
     runs-on: ubuntu-latest
     steps:
       -
@@ -83,25 +104,4 @@ jobs:
         name: Move cache
         run: |
           rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache          
-
-
-      # - name: Conventional Changelog Action
-      #   id: changelog
-      #   uses: TriPSs/conventional-changelog-action@v3
-      #   with:
-      #     github-token: ${{ secrets.DEVSECOPS_GITHUB }}
-      #     output-file: "false"
-
-      # - name: Create Release
-      #   uses: actions/create-release@v1
-      #   if: ${{ steps.changelog.outputs.skipped == 'false' }}
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.DEVSECOPS_GITHUB }}
-      #   with:
-      #     tag_name: ${{ steps.changelog.outputs.tag }}
-      #     release_name: ${{ steps.changelog.outputs.tag }}
-      #     body: ${{ steps.changelog.outputs.clean_changelog }}
-      # - name: Deploy
-      #   run: |
-      #     npm run deploy
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
