@@ -42,9 +42,6 @@ jobs:
       - name: Lint
         run: |
           npm run lint
-      - name: Audit 
-        run: |
-          npm audit fix
       - name: Update types to latest
         run: |
           npm install --save-dev @types/node@latest --force
@@ -71,7 +68,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: user/app:latest
+          tags: dkenobi/app:latest
 
 
       # - name: Conventional Changelog Action
